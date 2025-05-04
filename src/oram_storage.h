@@ -1,4 +1,5 @@
 #pragma once
+#include "ringlwe.h"
 #include "oram_structs.h"
 #include "oram_protocol.h"
 #include <vector>
@@ -8,16 +9,14 @@ template <size_t Z>
 class OramStorage {
     using BucketType = Bucket<Z>;
     std::vector<std::vector<BucketType>> levels;
+    Ciphertext final;
 
 public:
-    OramStorage(size_t N_slots) {
-        size_t level = 0;
-        while ((1ULL << level) < N_slots) {
-            ++level;
-        }
-        for (size_t i = 0; i <= level; ++i) {
-            size_t num_buckets = 1ULL << i;
-            levels.emplace_back(num_buckets); // level i has 2^i buckets
+    OramStorage(size_t N) {
+        size_t cap = 1;
+        while (cap <= N) {
+            levels.emplace_back(cap);
+            cap = cap << 1;
         }
     }
 
@@ -45,5 +44,9 @@ public:
             resp.entries.push_back(encrypt(entry.value, pk));
         }
         return resp;
+    }
+
+    void set_level(const &vector<BucketType> arr, size_t lvl) {
+        levels[lvl] = arr;
     }
 };

@@ -14,6 +14,12 @@ class OramClient {
 public:
     OramClient(size_t levels) : num_levels(levels), level_hashes(levels), rng(std::random_device{}()) {}
 
+    void init() {
+        for (size_t i = 0; i < num_levels; i++) {
+            level_hashes[i] = Hash();
+        }
+    }
+
     const Hash& get_hash_for_level(size_t level) const {
         return level_hashes.at(level);
     }

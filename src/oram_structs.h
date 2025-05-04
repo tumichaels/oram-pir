@@ -23,6 +23,21 @@ struct OramEntry {
     }
 };
 
+inline Ciphertext encrypt_entry(const OramEntry& entry, const PublicKey& pk) {
+    Poly m(N, 0);
+    m[0] = entry.id;
+    for (size_t i = 0; i < entry.value.size(); ++i)
+        m[i + 1] = entry.value[i];
+    return encrypt(m, pk);
+}
+
+inline OramEntry decrypt_entry(const Ciphertext& ct, const SecretKey& sk) {
+    Poly m = decrypt(ct, sk);
+    uint64_t id = m[0];
+    Poly val(m.begin() + 1, m.end());
+    return OramEntry{id, val};
+}
+
 // ---- Bucket<Z> ----
 template <size_t Z>
 struct Bucket {
@@ -49,4 +64,3 @@ struct Bucket {
         return false;
     }
 };
-

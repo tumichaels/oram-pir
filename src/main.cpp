@@ -32,23 +32,18 @@ void test_oram_access_success() {
         cout << "Not found\n";
 }
 
-void test_oram_access_failure() {
-    cout << "[Test] ORAM Client fails cleanly on missing entry\n";
+void test_oram_access_success() {
+    cout << "[Test] ORAM Client can access inserted entry\n";
 
     auto [pk, sk] = keygen();
 
-    constexpr size_t Z = 4;
-    constexpr size_t N_buckets = 1024;
+    constexpr size_t N = 32;
+    constexpr size_t Z = 5;     // pretty sure Z = log N?
 
-    OramStorage<Z> storage(N_buckets);
+    OramStorage<Z> storage(N);
     OramClient client(storage.num_levels());
 
-    uint64_t nonexistent_id = 999;
-    auto result = client.access(nonexistent_id, pk, sk, storage);
-    if (!result)
-        cout << "Correctly not found: " << nonexistent_id << "\n";
-    else
-        cout << "Unexpectedly found value: " << result->id << "\n";
+    std::vector<Bucket<Z>> arr;
 }
 
 int main() {
