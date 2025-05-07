@@ -1,7 +1,7 @@
 # tool macros
 # CC ?= # FILL: the compiler
 CXX ?= g++ # FILL: the compiler
-CXXFLAGS := -O3 -std=c++17 -MD -march=native # FILL: compile flags
+CXXFLAGS := -O3 -std=c++17 -MD -march=native -Iinclude # FILL: compile flags
 DBGFLAGS := -g
 COBJFLAGS := $(CFLAGS) -c
 

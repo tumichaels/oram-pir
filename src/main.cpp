@@ -1,54 +1,55 @@
-#include "oram_client.h"
-#include "oram_storage.h"
-#include "oram_protocol.h"
-#include "ringlwe.h"
+#include <iostream>
+#include <vector>
+#include <chrono>
+#include <random>
 
-void init_globals() {
-    INV_N = modinv(N, Q);
-}
+// int main()
+// {
+//     uint64_t N = 1000;
+//     uint64_t num_accesses = 1000;
 
-void test_oram_access_success() {
-    cout << "[Test] ORAM Client can access inserted entry\n";
+//     // 1. generate random DB
+//     unsigned seed = 83;
+//     std::mt19937 rng( seed );  
+//     std::uniform_int_distribution<uint64_t> data_dist(0, 1000);
+//     std::vector<uint64_t> DB(N);
+//     for (auto &e : DB) e = data_dist(rng);
 
-    auto [pk, sk] = keygen();
+//     // 2. init PIR
+//     auto t1 = std::chrono::high_resolution_clock::now();
+//         // perform init
 
-    constexpr size_t Z = 4;
-    constexpr size_t N_buckets = 1024;
+//     auto t2 = std::chrono::high_resolution_clock::now();
+//     std::cout << "time elapsed to initialize PIR: "
+//               << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() << " ms\n";
 
-    OramStorage<Z> storage(N_buckets);
-    OramClient client(storage.num_levels());
+    
+   
+//     // 3. Query PIR
+//     // generating all random queries
+//     std::vector<uint64_t> queries(num_accesses);
+//     std::uniform_int_distribution<uint64_t> query_dist(0, N);
+//     std::vector<uint64_t> queries(num_accesses);
+//     for (auto &e : queries) e = query_dist(rng);
 
-    // Insert an entry manually at the bottom level, bucket 0
-    uint64_t target_id = 42;
-    Poly val(N, 0); val[0] = target_id; val[1] = 99;
-    size_t target_level = storage.num_levels() - 1;
-    storage.get_bucket(target_level, 0).entries[0] = OramEntry(target_id, val);
+//     t1 = std::chrono::high_resolution_clock::now();
+//     for (uint64_t i = 0; i < num_accesses; i++) {
+//        //   a. make_query
+//        //   b. answer
+//        //   c. decode_query 
+//     }
+//     t2 = std::chrono::high_resolution_clock::now();
+//     std::cout << "time elapsed for "
+//               << num_accesses << " accesses: "
+//               << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() << " ms\n";
+// }
 
-    // Access it
-    auto result = client.access(target_id, pk, sk, storage);
-    if (result)
-        cout << "Found id=" << result->id << " value=" << result->value[1] << "\n";
-    else
-        cout << "Not found\n";
-}
-
-void test_oram_access_success() {
-    cout << "[Test] ORAM Client can access inserted entry\n";
-
-    auto [pk, sk] = keygen();
-
-    constexpr size_t N = 32;
-    constexpr size_t Z = 5;     // pretty sure Z = log N?
-
-    OramStorage<Z> storage(N);
-    OramClient client(storage.num_levels());
-
-    std::vector<Bucket<Z>> arr;
-}
-
+#include "testing.hpp"
 int main() {
-    init_globals();
-    test_oram_access_success();
-    test_oram_access_failure();
+    IS_TRUE(test_barrett_reduce);
+    IS_TRUE(test_mod_mul);
+    IS_TRUE(test_modpow);
+    IS_TRUE(test_bit_reverse);
+
     return 0;
 }
