@@ -1,7 +1,13 @@
 # tool macros
 # CC ?= # FILL: the compiler
 CXX ?= g++ # FILL: the compiler
-CXXFLAGS := -O3 -std=c++17 -MD -march=native -Iinclude # FILL: compile flags
+CXXFLAGS := -O3 -std=c++17 \
+			-MD -march=native \
+			-Iinclude \
+			-I/opt/homebrew/opt/openssl/include \
+			-L/opt/homebrew/opt/openssl/lib \
+			-lssl \
+			-lcrypto
 DBGFLAGS := -g
 COBJFLAGS := $(CFLAGS) -c
 

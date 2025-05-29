@@ -1,5 +1,31 @@
-#include "poly.hpp"
 #include <random>
+#include <openssl/sha.h>
+
+#include "poly.hpp"
+#include "crypto.hpp"
+#include <iostream>
+
+LinearHash::LinearHash() {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dist(0, 255);
+
+    key.resize(32);
+    for (auto &b : key) b = dist(gen);
+}
+
+uint64_t LinearHash::hash(uint64_t x) {
+    uint8_t input[32 + sizeof(uint64_t)];
+    std::memcpy(input, &x, sizeof(uint64_t));
+    std::memcpy(input + sizeof(uint64_t), key.data(), 32);
+
+    uint8_t hash[SHA256_DIGEST_LENGTH];
+    SHA256(input, sizeof(input), hash);
+
+    uint64_t result;
+    std::memcpy(&result, hash, sizeof(uint64_t));
+    return result;
+}
 
 // Sample from {-1, 0, 1}
 void sample_small_poly(const Params& params, Poly& out) {
@@ -29,7 +55,7 @@ void sample_random_poly(const Params& params, Poly& out) {
 void encode_message(const Params& params, const Poly& m, Poly& out) {
     out.resize(params.poly_len);
     for (size_t i = 0; i < params.poly_len; ++i) {
-        out[i] = (__uint128_t)m[i] * params.q / params.t % params.q;
+        out[i] = (__uint128_t)m[i] * params.q / params.pt_modulus % params.q;
     }
 }
 
@@ -37,23 +63,7 @@ void encode_message(const Params& params, const Poly& m, Poly& out) {
 void decode_message(const Params& params, const Poly& m, Poly& out) {
     out.resize(params.poly_len);
     for (size_t i = 0; i < params.poly_len; ++i) {
-        out[i] = ((__uint128_t)m[i] * params.t + params.q / 2) / params.q % params.t;
-    }
-}
-
-// Polynomial addition
-void poly_add(const Params& params, Poly& res, const Poly& a, const Poly& b) {
-    res.resize(params.poly_len);
-    for (size_t i = 0; i < params.poly_len; ++i) {
-        res[i] = mod_add(params, a[i], b[i]);
-    }
-}
-
-// Polynomial subtraction
-void poly_sub(const Params& params, Poly& res, const Poly& a, const Poly& b) {
-    res.resize(params.poly_len);
-    for (size_t i = 0; i < params.poly_len; ++i) {
-        res[i] = mod_sub(params, a[i], b[i]);
+        out[i] = ((__uint128_t)m[i] * params.pt_modulus + params.q / 2) / params.q % params.pt_modulus;
     }
 }
 

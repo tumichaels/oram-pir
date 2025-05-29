@@ -2,16 +2,17 @@
 #include <cstdint>
 #include <cassert>
 #include <algorithm>
+#include <iostream>
 
 #include "params.hpp"
 
 using Poly = std::vector<uint64_t>;
 
 // --- Barrett Reduction ---
-uint64_t barrett_reduce(const Params &params, uint64_t a)
+uint64_t barrett_reduce(const Params &params, __uint128_t a)
 {
     __uint128_t x = (__uint128_t)a * params.b_const;
-    uint64_t q_est = x >> params.b_shift;
+    __uint128_t q_est = x >> params.b_shift;
     uint64_t r = a - q_est * params.q;
     return (r >= params.q) ? r - params.q : r;
 }
@@ -31,7 +32,7 @@ uint64_t mod_sub(const Params &params, uint64_t a, uint64_t b)
 uint64_t mod_mul(const Params &params, uint64_t a, uint64_t b)
 {
     __uint128_t prod = (__uint128_t)a * b;
-    return barrett_reduce(params, prod % params.q);
+    return barrett_reduce(params, prod);
 }
 
 uint64_t modpow(const Params &params, uint64_t base, uint64_t exp)
@@ -40,8 +41,8 @@ uint64_t modpow(const Params &params, uint64_t base, uint64_t exp)
     while (exp)
     {
         if (exp & 1)
-            res = (__uint128_t)res * base % params.q;
-        base = (__uint128_t)base * base % params.q;
+            res = ((__uint128_t)res * base) % params.q;
+        base = ((__uint128_t)base * base) % params.q;
         exp >>= 1;
     }
     return res;
@@ -128,4 +129,20 @@ void poly_mul(const Params &params, Poly &res, const Poly &a, const Poly &b)
         res[i] = mod_mul(params, A[i], B[i]);
     }
     intt(params, res);
+}
+
+// Polynomial addition
+void poly_add(const Params& params, Poly& res, const Poly& a, const Poly& b) {
+    res.resize(params.poly_len);
+    for (size_t i = 0; i < params.poly_len; ++i) {
+        res[i] = mod_add(params, a[i], b[i]);
+    }
+}
+
+// Polynomial subtraction
+void poly_sub(const Params& params, Poly& res, const Poly& a, const Poly& b) {
+    res.resize(params.poly_len);
+    for (size_t i = 0; i < params.poly_len; ++i) {
+        res[i] = mod_sub(params, a[i], b[i]);
+    }
 }

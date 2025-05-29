@@ -1,4 +1,13 @@
+#include <vector>
 #include "poly.hpp"
+
+struct LinearHash {
+    public:
+        std::vector<uint8_t> key;
+
+        LinearHash();
+        uint64_t hash(uint64_t x);
+};
 
 // Sample from {-1, 0, 1}
 void sample_small_poly(const Params& params, Poly& out);
@@ -11,12 +20,6 @@ void encode_message(const Params& params, const Poly& m, Poly& out);
 
 // Decode from R_q to message mod t
 void decode_message(const Params& params, const Poly& m, Poly& out);
-
-// Polynomial addition
-void poly_add(const Params& params, Poly& res, const Poly& a, const Poly& b);
-
-// Polynomial subtraction
-void poly_sub(const Params& params, Poly& res, const Poly& a, const Poly& b);
 
 // KeyGen: outputs pk = (a, b), sk = s
 void keygen(const Params& params, Poly& a, Poly& b, Poly& s);

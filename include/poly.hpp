@@ -9,7 +9,7 @@
 using Poly = std::vector<uint64_t>;
 
 // --- Barrett Reduction ---
-uint64_t barrett_reduce(const Params &params, uint64_t a);
+uint64_t barrett_reduce(const Params &params, __uint128_t a);
 
 // --- Modular Arithmetic ---
 uint64_t mod_add(const Params &params, uint64_t a, uint64_t b);
@@ -33,3 +33,8 @@ void intt(const Params &params, Poly &a);
 // --- Polynomial Multiplication (NTT-based) ---
 void poly_mul(const Params &params, Poly &res, const Poly &a, const Poly &b);
 
+// --- Polynomial Addition ---
+void poly_add(const Params &params, Poly &res, const Poly &a, const Poly &b);
+
+// --- Polynomial Subtraction ---
+void poly_sub(const Params &params, Poly &res, const Poly &a, const Poly &b);
