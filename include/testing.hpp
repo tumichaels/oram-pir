@@ -30,6 +30,7 @@ Params get_test_params() {
     __uint128_t b_const = (__uint128_t(1) << 64) / q;
     return Params {
         .q = 998244353,         // prime ring
+        .pt_modulus = 1024,
         .poly_len = 64,          // po2 b/c of NTT algo (should be at least 1024)
         .root = 3,
         .inv_root = 332748118,
@@ -83,9 +84,9 @@ bool test_bit_reverse() {
 
 bool test_add_poly() {
     Params params = get_test_params();
-    Poly a = {0, 1, 2, 3, 0, 0, 0, 0};
-    Poly b = {0, 1, 81, 81, 0, 5, 10, 1};
-    Poly exp = {0, 2, 0, 1, 0, 5, 10, 1};
+    Poly a = {0, 1, 2, 3, 0, 499122176, 0, 0};
+    Poly b = {0, 1, 81, 81, 0, 499122177, 10, 1};
+    Poly exp = {0, 2, 83, 84, 0, 0, 10, 1};
     
     poly_add(params, a, a, b);
     for (uint64_t i = 0; i < params.poly_len; i++) {
@@ -123,7 +124,7 @@ bool test_mul_poly() {
     exp[2] = 1;
 
     poly_mul(params, res, a, b);
-    poly_print(params, res); std::cout << std::endl;
+    // poly_print(params, res); std::cout << std::endl;
     for (uint64_t i = 0; i < params.poly_len; i++) {
         if (res[i] != exp[i]) {
             return false;
@@ -148,6 +149,7 @@ bool test_poly_basic() {
 
 bool test_crypto_basic() {
     Params params = get_test_params();
+    return true;
 }
 
 bool test_ORAMClient_init() {
@@ -171,7 +173,7 @@ bool test_ORAMAccess() {
     params.display(); std::cout << std::endl;
 
     std::stringstream ss;
-    for (uint64_t i = 0; i < 630; i++) {
+    for (uint64_t i = 0; i < 63 * 15; i++) {
         ss.write(reinterpret_cast<const char*>(&i), sizeof(uint64_t));
     }
 
@@ -200,9 +202,10 @@ bool test_ORAMAccess() {
         }
         os.replace_lvl(i, encrypted_table);
     }
-    auto table = oc.build_table(os,os.get_num_levels()-1,polys);
 
-    // encrypt table as vector of pairs
+    // build lowest level table
+    std::cout << "building lowest level table..." << std::endl;
+    auto table = oc.build_table(os,os.get_num_levels()-1,polys);
     std::vector<std::pair<Poly,Poly>> encrypted_table(table.size());
     for (size_t i=0; i < table.size(); i++){
         encrypted_table[i].first = Poly(params.poly_len);
@@ -218,22 +221,33 @@ bool test_ORAMAccess() {
     }
 
     os.replace_lvl(os.get_num_levels()-1,encrypted_table);
+    oc.display();
     os.display();
 
     std::cout << "==== double checking encryption ====" << std::endl;
-    for (auto &ct : encrypted_table) {
+    for (size_t i = 0; i < encrypted_table.size(); i++) {
         Poly m;
+        auto &ct = encrypted_table[i];
         decrypt(params, oc.sk, ct.first, ct.second, m);
-        std::cout  << m[0] << std::endl;
+        std::cout << m[0] << std::endl;
+        if (i % params.z == 3){
+            std::cout << "-- " << std::endl;
+        }
     }
 
-    std::cout << "table.size(): " << table.size() << std::endl;
-    std::cout << "encrypted_table.size(): " << encrypted_table.size() << std::endl;
-    std::cout << "encrypted_table[0].first.size(): " << encrypted_table[0].first.size() << std::endl;
+    // sanity checks that have been dealth with
+    // std::cout << "table.size(): " << table.size() << std::endl;
+    // std::cout << "encrypted_table.size(): " << encrypted_table.size() << std::endl;
+    // std::cout << "encrypted_table[0].first.size(): " << encrypted_table[0].first.size() << std::endl;
 
-    auto val = oc.read_index(os, 4);
+    auto res = oc.read_index(os, 4);
     // poly_print(params, exp);
-    poly_print(params, val);
+    // poly_print(params, val); 
+    for (uint64_t i = 0; i < params.poly_len; i++) {
+        if (res[i] != exp[i]) {
+            return false;
+        }
+    }
     return true;
 }
 

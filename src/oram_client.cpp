@@ -1,6 +1,7 @@
 #include <vector>
 #include <iostream>
 #include <numeric>
+#include <iomanip>
 
 #include "params.hpp"
 #include "poly.hpp"
@@ -40,12 +41,13 @@ Poly ORAMClient::read_index(ORAMStorage &s, uint64_t idx) {
 
     uint64_t cap = 1;
     for (uint64_t i = 0; i <= l; i++) {
-        uint64_t to_hash = dummy_idx ? found : idx;
+        uint64_t to_hash = found ? dummy_idx : idx;
         uint64_t lvl_idx = this->lvl_hashes[i].hash(to_hash) % cap;
         cap *= params.mu;
 
         std::vector<std::pair<Poly,Poly>> resp = s.read(i, lvl_idx);
 
+        // std::cout << "hashed: " << to_hash << std::endl;
         std::cout << "searched: (" << i << "," << lvl_idx << ")" << std::endl;
         Poly m = Poly(this->params.poly_len);
         for (const auto &ct : resp) {
@@ -76,11 +78,14 @@ ORAMClient::build_table(
 
     // old vals with pos
     std::vector<uint64_t> pos(vals.size());
-    for (size_t i; i < vals.size(); i++) {
+    for (size_t i = 0; i < vals.size(); i++) {
         pos[i] = this->lvl_hashes[lvl].hash(vals[i][0]) % lvl_n;
+        std::cout << "(" << vals[i][0] << "," << pos[i] << ") ";
     }
+    
+    std::cout << std::endl;
 
-    // filler
+    // add filler
     pos.reserve(pos.size() + cap);
     vals.reserve(vals.size() + cap);
     for (size_t i = 0; i < lvl_n; i++) {
@@ -90,6 +95,10 @@ ORAMClient::build_table(
         }
     }
 
+    // std::cout << "all pos (including filler)" << std::endl;
+    // for (auto &i : pos) std::cout << i << " ";
+    // std::cout << std::endl;
+
     // sort by bin
     std::vector<size_t> indices(vals.size());
     std::iota(indices.begin(), indices.end(), 0);
@@ -97,6 +106,10 @@ ORAMClient::build_table(
         if (pos[a] != pos[b]) return pos[a] < pos[b];
         return !is_filler(params,vals[a]) && is_filler(params,vals[b]);
     });
+
+    // std::cout << "all indices (including filler)" << std::endl;
+    // for (auto &i : indices) std::cout << i << " ";
+    // std::cout << std::endl;
 
     std::vector<uint64_t> new_pos(vals.size());
     std::vector<Poly> new_vals(vals.size()); 
@@ -109,6 +122,10 @@ ORAMClient::build_table(
 
     pos = std::move(new_pos);
     vals = std::move(new_vals);
+
+    // std::cout << "new pos " << std::endl;
+    // for (auto &i : pos) std::cout << i << " ";
+    // std::cout << std::endl;
 
     // label excess
     std::vector<bool> is_excess(vals.size(), false);
@@ -125,8 +142,8 @@ ORAMClient::build_table(
     // 2nd sort
     std::iota(indices.begin(), indices.end(), 0);
     std::stable_sort(indices.begin(), indices.end(), [&](size_t a, size_t b) {
-        bool da = is_dummy(this->params, vals[a]);
-        bool db = is_dummy(this->params, vals[b]);
+        bool da = !is_filler(this->params, vals[a]) && is_dummy(this->params, vals[a]);
+        bool db = !is_filler(this->params, vals[b]) && is_dummy(this->params, vals[b]);
 
         if (da != db) return !da;
         if (is_excess[a] != is_excess[b]) return !is_excess[a];
@@ -140,10 +157,22 @@ ORAMClient::build_table(
         reordered_vals[i] = vals[indices[i]];
     }
 
+    // std::cout << "all reordered vals (including filler)" << std::endl;
+    // for (auto &i : reordered_vals) std::cout << i[0] % this->params.n << "\n";
+    // std::cout << std::endl;
+
     reordered_vals.resize(cap);
     return reordered_vals;
 }
 
 void ORAMClient::display() {
-
+    std::cout << "number of levels: " << this->l + 1 << std::endl;
+    std::cout << "hash keys:" << std::endl;
+    for (size_t i = 0; i <= this->l; i++) {
+        std::cout << "lvl " << i << ": " << std::hex;
+        for (size_t j = 0; j < this->lvl_hashes[i].key.size(); j++) {
+            std::cout << std::setw(2) << std::setfill('0') << static_cast<int>(this->lvl_hashes[i].key[j]);
+        }
+        std::cout << std::dec << std::endl;
+    }
 }

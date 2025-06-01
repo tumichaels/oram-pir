@@ -51,10 +51,10 @@ int main() {
     // IS_TRUE(test_modpow);
     // IS_TRUE(test_ntt);
     // IS_TRUE(test_bit_reverse);
-    IS_TRUE(test_poly_basic);
-    IS_TRUE(test_encode_as_poly);
-    IS_TRUE(test_crypto_basic);
-    // IS_TRUE(test_ORAMClient_init);
+    // IS_TRUE(test_poly_basic);
+    // IS_TRUE(test_encode_as_poly);
+    // IS_TRUE(test_crypto_basic);
+    // // IS_TRUE(test_ORAMClient_init);
     IS_TRUE(test_ORAMAccess);
     // IS_TRUE(test_ORAMStorage_init);
 

@@ -15,7 +15,7 @@ LinearHash::LinearHash() {
 }
 
 uint64_t LinearHash::hash(uint64_t x) {
-    uint8_t input[32 + sizeof(uint64_t)];
+    uint8_t input[sizeof(uint64_t) + 32];
     std::memcpy(input, &x, sizeof(uint64_t));
     std::memcpy(input + sizeof(uint64_t), key.data(), 32);
 

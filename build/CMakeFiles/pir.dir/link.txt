@@ -1,0 +1,1 @@
+/usr/bin/c++  -arch arm64 -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/pir.dir/src/main.cpp.o -o pir  -Wl,-rpath,/Users/michaeltu/Documents/oram-pir/build libpoly.dylib
