@@ -32,22 +32,23 @@ ORAMClient::ORAMClient(const Params &p) {
 }
 
 Poly ORAMClient::read_index(ORAMStorage &s, uint64_t idx) {
+
     this->t++;
 
     bool found = false;
-    Poly out = Poly(); // should set this to dummy or something
+    Poly out = make_dummy(this->params);
 
     uint64_t dummy_idx = this->params.n + this->t;
 
-    uint64_t cap = 1;
+    uint64_t cap = 1; // is a hack, just expose the size
     for (uint64_t i = 0; i <= l; i++) {
         uint64_t to_hash = found ? dummy_idx : idx;
         uint64_t lvl_idx = this->lvl_hashes[i].hash(to_hash) % cap;
-        cap *= params.mu;
+        cap *= this->params.mu;
 
         std::vector<std::pair<Poly,Poly>> resp = s.read(i, lvl_idx);
 
-        // std::cout << "hashed: " << to_hash << std::endl;
+        std::cout << "hashed: " << to_hash << std::endl;
         std::cout << "searched: (" << i << "," << lvl_idx << ")" << std::endl;
         Poly m = Poly(this->params.poly_len);
         for (const auto &ct : resp) {
@@ -63,6 +64,24 @@ Poly ORAMClient::read_index(ORAMStorage &s, uint64_t idx) {
     }
 
     // TODO: write back and rebuild
+
+    // rerandomize
+    std::pair<Poly,Poly> ct;
+    encrypt(this->params, out, this->a, this->b, ct.first, ct.second);
+
+    // write back
+    s.write_cache(ct);
+
+    // rebuild
+    if (this->t % this->params.z == 0) {
+        uint64_t i_bar = 0;
+        uint64_t tau = this->params.z;
+        while ((this->t % tau == 0) && (i_bar + 1 < this->l)) {
+            i_bar++;
+            tau *= this->params.mu;
+        }
+        uint64_t i_star = std::min(i_bar + 1, this->l);
+    }
 
     return out;
 }
@@ -142,8 +161,8 @@ ORAMClient::build_table(
     // 2nd sort
     std::iota(indices.begin(), indices.end(), 0);
     std::stable_sort(indices.begin(), indices.end(), [&](size_t a, size_t b) {
-        bool da = !is_filler(this->params, vals[a]) && is_dummy(this->params, vals[a]);
-        bool db = !is_filler(this->params, vals[b]) && is_dummy(this->params, vals[b]);
+        bool da = is_dummy(this->params, vals[a]);
+        bool db = is_dummy(this->params, vals[b]);
 
         if (da != db) return !da;
         if (is_excess[a] != is_excess[b]) return !is_excess[a];

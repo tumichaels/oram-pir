@@ -172,13 +172,14 @@ bool test_ORAMAccess() {
     Params params = get_test_params();
     params.display(); std::cout << std::endl;
 
+    size_t num_items =  3; 
+
     std::stringstream ss;
-    for (uint64_t i = 0; i < 63 * 15; i++) {
+    for (uint64_t i = 0; i < 63 * num_items; i++) {
         ss.write(reinterpret_cast<const char*>(&i), sizeof(uint64_t));
     }
 
     auto polys = encode_data_as_polys(params, ss);
-    auto exp = polys[3];
     // poly_print(params, exp); std::cout<<std::endl;
 
     ORAMClient oc = ORAMClient(params);
@@ -240,14 +241,18 @@ bool test_ORAMAccess() {
     // std::cout << "encrypted_table.size(): " << encrypted_table.size() << std::endl;
     // std::cout << "encrypted_table[0].first.size(): " << encrypted_table[0].first.size() << std::endl;
 
-    auto res = oc.read_index(os, 4);
-    // poly_print(params, exp);
-    // poly_print(params, val); 
-    for (uint64_t i = 0; i < params.poly_len; i++) {
-        if (res[i] != exp[i]) {
-            return false;
+    for (size_t k = 0; k < params.z+1; k++) {
+        std::cout << "search iteration: " << k << std::endl;
+        for (size_t i = 0; i < num_items; i ++) {
+            auto res = oc.read_index(os, i);
+            for (uint64_t j = 0; j < params.poly_len; j++) {
+                if (res[j] != polys[i][j]) {
+                    return false;
+                }
+            }
         }
     }
+
     return true;
 }
 

@@ -20,4 +20,7 @@
     - learn more about relative size of message space to ctext space to pack more densely
     - uint64_t is or isn't correct type for polynomials?
     - not taking modulus for the coefficients
-    - __MUST DO THIS__
+    - __MUST DO THIS__ [x] (Done!)
+
+
+## THINGS AREN"T BEING STORED IN NTT FORM [ ]

@@ -32,6 +32,12 @@ bool is_filler(const Params &params, Poly x) {
     return x[0] == 0xFFFF'FFFF'FFFF'FFFF;
 }
 
+Poly make_dummy(const Params &params) {
+    Poly out(params.poly_len);
+    out[0] = params.n+1;
+    return out;
+}
+
 bool is_dummy(const Params &params, Poly x) {
-    return x[0] >= params.n;
+    return !is_filler(params, x) && x[0] >= params.n;
 }

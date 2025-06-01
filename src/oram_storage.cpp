@@ -24,6 +24,8 @@ ORAMStorage::ORAMStorage(const Params &p) {
         this->l++;
     }
     this->l--; // annoying, but necessary
+
+    this->cache_write_idx = 0;
 }
 
 std::vector<std::pair<Poly,Poly>> ORAMStorage::read(uint64_t lvl, uint64_t idx) {
@@ -32,6 +34,11 @@ std::vector<std::pair<Poly,Poly>> ORAMStorage::read(uint64_t lvl, uint64_t idx) 
     auto cp = std::vector<std::pair<Poly, Poly>>(read_start, read_start + params.z);
     return cp;
 }
+
+void ORAMStorage::write_cache(const std::pair<Poly, Poly> &val) {
+    this->storage[0][this->cache_write_idx] = val;
+    this->cache_write_idx = (this->cache_write_idx + 1) % this->params.z;
+    }
 
 uint64_t ORAMStorage::get_cap(uint64_t lvl) {
     return storage[lvl].size();
