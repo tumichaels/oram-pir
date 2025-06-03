@@ -52,6 +52,10 @@ void ORAMStorage::replace_lvl(uint64_t lvl, std::vector<std::pair<Poly,Poly>> &t
     this->storage[lvl] = t;
 }
 
+std::vector<std::pair<Poly,Poly>>ORAMStorage::extract_lvl(uint64_t lvl) {
+    return this->storage[lvl];
+}
+
 void ORAMStorage::display() {
     // TODO
     std::cout << "num levels: " << this->l+1 << std::endl;

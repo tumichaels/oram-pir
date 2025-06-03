@@ -240,10 +240,10 @@ bool test_ORAMAccess() {
     // std::cout << "table.size(): " << table.size() << std::endl;
     // std::cout << "encrypted_table.size(): " << encrypted_table.size() << std::endl;
     // std::cout << "encrypted_table[0].first.size(): " << encrypted_table[0].first.size() << std::endl;
-
+    std::cout << "==== running search tests ==== "  << std::endl;
     for (size_t k = 0; k < params.z+1; k++) {
-        std::cout << "search iteration: " << k << std::endl;
         for (size_t i = 0; i < num_items; i ++) {
+            std::cout << "\nsearch iteration: " << k*num_items + i + 1<< std::endl;
             auto res = oc.read_index(os, i);
             for (uint64_t j = 0; j < params.poly_len; j++) {
                 if (res[j] != polys[i][j]) {

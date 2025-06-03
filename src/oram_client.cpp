@@ -74,13 +74,60 @@ Poly ORAMClient::read_index(ORAMStorage &s, uint64_t idx) {
 
     // rebuild
     if (this->t % this->params.z == 0) {
+        // find right level
         uint64_t i_bar = 0;
         uint64_t tau = this->params.z;
         while ((this->t % tau == 0) && (i_bar + 1 < this->l)) {
             i_bar++;
             tau *= this->params.mu;
         }
-        uint64_t i_star = std::min(i_bar + 1, this->l);
+        uint64_t i_star = std::min(i_bar, this->l);
+
+        // extract old values, sample new keys
+        std::vector<Poly> ptext;
+        for (size_t i = 0; i <= i_star; i++) {
+            for (auto &ct : s.extract_lvl(i)) {
+                Poly m;
+                decrypt(this->params, this->sk, ct.first, ct.second, m);
+                ptext.push_back(m);
+            }
+            this->lvl_hashes[i] = LinearHash();
+        }        
+
+        // delete duplicates, keep only unique
+        std::stable_sort(ptext.begin(), ptext.end(), [&](Poly a, Poly b) {
+            return a[0] < b[0];
+        });
+
+        ptext.erase(std::unique(ptext.begin(), ptext.end(), [](const Poly &a, const Poly &b) {
+            return a[0] == b[0];
+        }), ptext.end());
+
+        for (size_t i = 0; i <= i_star; i++) {
+            std::vector<Poly> table; 
+            if (i != i_star)
+                table = this->build_table(s, i, {});
+            else   
+                table = this->build_table(s, i, ptext);
+
+            // encrypt table as vector of pairs
+            std::vector<std::pair<Poly,Poly>> encrypted_table(table.size());
+            for (size_t j = 0; j < table.size(); j++){
+                encrypted_table[j].first = Poly(this->params.poly_len);
+                encrypted_table[j].second = Poly(this->params.poly_len);
+                encrypt(
+                    this->params,
+                    table[j], 
+                    this->a,
+                    this->b,
+                    encrypted_table[j].first, 
+                    encrypted_table[j].second
+                );
+            }
+            s.replace_lvl(i, encrypted_table);
+        }
+
+        // still need to set the other tables to empty somehow --> did it same way as before
     }
 
     return out;

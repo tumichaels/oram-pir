@@ -24,6 +24,7 @@ class ORAMStorage {
         std::vector<std::pair<Poly,Poly>> read(uint64_t lvl, uint64_t idx);
         void write_cache(const std::pair<Poly,Poly> &val);
         void replace_lvl(uint64_t lvl, std::vector<std::pair<Poly,Poly>> &t);
+        std::vector<std::pair<Poly,Poly>> extract_lvl(uint64_t lvl);
         void display();
         uint64_t get_num_levels();
 };
